@@ -28,7 +28,7 @@ See dependancies in VLCB4in4out_README.md in this repository.
 ## Hardware
 
 Currently supports the ESP32 family using the 
-[Pico Arduino IDE](https://github.com/espressif/arduino-esp32) Full instructions on how to do this in the associated
+[ESP32 Arduino core](https://github.com/espressif/arduino-esp32) Full instructions on how to do this in the associated
 [documentation](https://docs.espressif.com/projects/arduino-esp32/en/latest/)
 
 ## Getting help and support
