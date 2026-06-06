@@ -175,6 +175,14 @@ bool VCANESP32::begin()
 
 bool VCANESP32::available()
 {  
+
+  static unsigned long last_stats_captured_at = 0;
+
+  if (millis() - last_stats_captured_at >= 1000) {
+    last_stats_captured_at = millis();
+    captureTWAIStats();
+  }
+
   return (uxQueueMessagesWaiting(rx_queue_handle) > 0);
 }
 
@@ -196,6 +204,8 @@ CANFrame VCANESP32::getNextCanFrame(void)
 
     // free the frame data buffer
     free(rx_msg.buffer);
+
+    ++_numMsgsRcvd;
   }
 
   return frame;
@@ -207,7 +217,6 @@ CANFrame VCANESP32::getNextCanFrame(void)
 
 bool VCANESP32::sendCanFrame(CANFrame *frame)
 {
-
   esp_err_t ret;
   twai_frame_t tx_frame;
 
@@ -218,16 +227,19 @@ bool VCANESP32::sendCanFrame(CANFrame *frame)
 
   // populate the TWAI frame from from the VLCB message frame
 
-  tx_frame.header.id = frame->id,
-  tx_frame.header.ide = frame->ext,
-  tx_frame.header.rtr = frame->rtr,
-  tx_frame.header.dlc = frame->len,
+  tx_frame.header.id = frame->id;
+  tx_frame.header.ide = frame->ext;
+  tx_frame.header.rtr = frame->rtr;
+  tx_frame.header.dlc = frame->len;
   memcpy(tx_frame.buffer, frame->data, frame->len);
-  tx_frame.buffer_len = frame->len,
+  tx_frame.buffer_len = frame->len;
 
   // send the frame - allow up to 500ms for tx queue space to become available
 
-  ret = twai_node_transmit(twai_node_handle, &tx_frame, 500);
+  if ((ret = twai_node_transmit(twai_node_handle, &tx_frame, 500)) == ESP_OK) {
+    ++_numMsgsSent;
+  }
+
   return (ret == ESP_OK);
 }
 
@@ -245,10 +257,26 @@ void VCANESP32::printStatus()
 /// reset the CAN transceiver
 //
 
-void VCANESP32::reset(void)
+void VCANESP32::reset()
 {
-
   twai_node_recover(twai_node_handle);
+  return;
+}
+
+//
+/// capture TWAI stats
+//
+
+void VCANESP32::captureTWAIStats() {
+
+  twai_node_status_t node_status;
+  twai_node_record_t node_statistics;
+
+  if (twai_node_get_info(twai_node_handle, &node_status, &node_statistics) == ESP_OK) {
+    _numSendErr = node_status.tx_error_count;
+    _numRecvErr = node_status.rx_error_count;
+  }
+
   return;
 }
 

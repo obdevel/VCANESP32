@@ -90,7 +90,7 @@ public:
   
   virtual unsigned int receiveCounter() override { return _numMsgsRcvd; }
   virtual unsigned int transmitCounter() override { return _numMsgsSent; }
-  virtual unsigned int receiveErrorCounter() override { return 0; }
+  virtual unsigned int receiveErrorCounter() override { return _numRecvErr; }
   virtual unsigned int transmitErrorCounter() override { return _numSendErr; }
   virtual unsigned int receiveBufferUsage() override { return 0; };
   virtual unsigned int transmitBufferUsage() override { return 0; };
@@ -102,7 +102,9 @@ public:
 
 /// \endcond
 private:
-  unsigned int _numMsgsSent, _numMsgsRcvd, _numSendErr, _hwmRx, _hwmTx;
+  void captureTWAIStats();
+
+  unsigned int _numMsgsSent, _numMsgsRcvd, _numSendErr, _numRecvErr, _hwmRx, _hwmTx;
   unsigned int _num_rx_buffers, _num_tx_buffers;
   byte _gpio_tx, _gpio_rx;
   twai_node_handle_t twai_node_handle;
