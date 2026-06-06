@@ -1,8 +1,9 @@
 <img align="right" src="ArduinoVLCB.png"  width="150" height="75">
 
-# VCAN2040
-This library provides a software CAN interface on a Raspberry Pi Pico when used in conjunction with the VLCB_Arduino library
-suite.  The main VLCB-Arduino library can be found at [VLCB](https://github.com/SvenRosvall/VLCB-Arduino) 
+# VCANESP32
+This library provides a CAN transport driver for the ESP32 family of SoCs, using the TWAI peripheral, when used
+in conjunction with the VLCB_Arduino library suite.  The main VLCB-Arduino library can be found at:
+ [VLCB](https://github.com/SvenRosvall/VLCB-Arduino) 
 
 This VLCB library code is based on a [CBUS library](https://github.com/MERG-DEV/CBUSACAN2040) created by Duncan Greenwood
 and extended by members of [MERG](https://www.merg.org.uk/). See below under Credits.
@@ -12,9 +13,9 @@ See [Design documents](https://github.com/SvenRosvall/VLCB-Arduino/blob/main/doc
 
 ## Examples
 There are two versions of the example that, from the users perspective, are functionally idential.
-The first uses a single core in the Pico and is identified as VLCB_4in4out_Pico_s, where 's' stands
+The first uses a single core in the ESP32 and is identified as VLCB_4in4out_ESP32_s, where 's' stands
 for single core.  The other core will be dormant in a low power state.
-The second version makes use of both cores in the processer and is identifed as VLCB_4in4out_Pico_d,
+The second version makes use of both cores in the processer (where available) and is identifed as VLCB_4in4out_ESP32_d,
 where 'd' stands for dual core.  This is organised such that the VLCB library runs in core 0 and the
 application runs in core 1.
 
@@ -26,16 +27,16 @@ See dependancies in VLCB4in4out_README.md in this repository.
 
 ## Hardware
 
-Currently supports the Raspberry Pi Pico using Earle Philhowers Arduino IDE board support
-[Pico Arduino IDE](https://github.com/earlephilhower/arduino-pico) Full instructions on how to do this in the associated
-[documentation](https://arduino-pico.readthedocs.io/en/latest/)
+Currently supports the ESP32 family using the 
+[Pico Arduino IDE](https://github.com/espressif/arduino-esp32) Full instructions on how to do this in the associated
+[documentation](https://docs.espressif.com/projects/arduino-esp32/en/latest/)
 
 ## Getting help and support
 
 At the moment this library is still in development and thus not fully supported.
 
 If you have any questions or suggestions please contact the library maintainers
-by email to [martindc.merg@gmail.com](mailto:martindc.merg@gmail.com) or create an issue in GitHub.
+by on the MERG forum, by email to: (mailto:duncan_greenwood@hotmail.com) or create an issue in GitHub.
 
 ## Credits
 
