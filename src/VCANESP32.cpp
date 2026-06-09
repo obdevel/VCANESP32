@@ -15,8 +15,10 @@
 namespace VLCB
 {
 
+/// these free functions are used as callbacks from the TWAI driver to the application
+
 //
-/// static message receive callback
+/// message receive callback
 /// called by the TWAI driver in interrupt context whenever a new CAN message is received from the bus
 /// the VCANESP32 object instance pointer (this) is passed as the user data context 
 /// pinned in IRAM for better performance
@@ -29,7 +31,7 @@ static bool IRAM_ATTR twai_rx_callback(twai_node_handle_t handle, const twai_rx_
   VCANESP32 *vcanesp32_instance_ptr = (VCANESP32 *)user_ctx;
   twai_frame_t rx_frame;
 
-  // allocate data buffer
+  // allocate the frame data buffer
 
   rx_frame.buffer = (uint8_t *)calloc(MAX_CAN_DATA_LEN, sizeof(uint8_t));
   rx_frame.buffer_len = MAX_CAN_DATA_LEN;
@@ -38,7 +40,7 @@ static bool IRAM_ATTR twai_rx_callback(twai_node_handle_t handle, const twai_rx_
 
   if (twai_node_receive_from_isr(handle, &rx_frame) == ESP_OK) {
     if (xQueueSendFromISR(vcanesp32_instance_ptr->rx_queue_handle, &rx_frame, NULL) != pdPASS) {
-      // Serial.printf("error: twai_rx_callback: unable to queue message");
+      Serial.printf("error: twai_rx_callback: unable to queue message");
     }
   }
 
@@ -46,7 +48,7 @@ static bool IRAM_ATTR twai_rx_callback(twai_node_handle_t handle, const twai_rx_
 }
 
 //
-/// static message transmit callback
+/// message transmit callback
 /// called by the TWAI driver in interrupt context whenever a CAN message has been successfully transmitted to the bus
 /// pinned in IRAM for better performance
 /// free the dynamically allocated data buffer
@@ -55,6 +57,30 @@ static bool IRAM_ATTR twai_rx_callback(twai_node_handle_t handle, const twai_rx_
 static bool IRAM_ATTR twai_tx_callback(twai_node_handle_t handle, const twai_tx_done_event_data_t *edata, void *user_ctx)
 {
   free(edata->done_tx_frame->buffer);
+  return false;
+}
+
+//
+/// error callback
+/// called by the TWAI driver in interrupt context if an error occurs
+/// pinned in IRAM for better performance
+//
+
+static bool IRAM_ATTR twai_error_callback(twai_node_handle_t handle, const twai_error_event_data_t *edata, void *user_ctx)
+{
+  Serial.printf("error twai_error_callback, error = %lu\n", edata->err_flags.val);
+  return false;
+}
+
+//
+/// state change callback
+/// called by the TWAI driver in interrupt context whenever a state change occurs
+/// pinned in IRAM for better performance
+//
+
+static bool IRAM_ATTR twai_state_change_callback(twai_node_handle_t handle, const twai_state_change_event_data_t *edata, void *user_ctx)
+{
+  Serial.printf("info: twai_state_change_callback, from %u to %u\n", edata->old_sta, edata->new_sta);
   return false;
 }
 
@@ -86,7 +112,7 @@ VCANESP32::~VCANESP32()
 }
 
 //
-/// set the IO pins to be used for CAN TX and RX
+/// explicitly set the IO pins to be used for CAN TX and RX
 //
 
 void VCANESP32::setPins(byte gpio_tx, byte gpio_rx)
@@ -98,6 +124,7 @@ void VCANESP32::setPins(byte gpio_tx, byte gpio_rx)
 //
 /// set the size of CAN frame transmit and receive queues
 /// these can be tuned according to bus load and available memory
+/// default size is 32
 //
 
 void VCANESP32::setNumBuffers(unsigned int num_rx_buffers, unsigned int num_tx_buffers)
@@ -149,9 +176,11 @@ bool VCANESP32::begin()
     bzero(&user_cbs, sizeof(twai_event_callbacks_t));
     user_cbs.on_rx_done = twai_rx_callback;
     user_cbs.on_tx_done = twai_tx_callback;
+    user_cbs.on_state_change = twai_state_change_callback;
+    user_cbs.on_error = twai_error_callback;
 
     // we pass a pointer to this object instance as user context data
-    // this gives the message receive callback access to the receive queue
+    // this gives the message receive callback access to the receive queue handle
 
     twai_node_register_event_callbacks(twai_node_handle, &user_cbs, this);
 
@@ -267,14 +296,24 @@ void VCANESP32::reset()
 /// capture TWAI stats
 //
 
-void VCANESP32::captureTWAIStats() {
-
+void VCANESP32::captureTWAIStats()
+{
   twai_node_status_t node_status;
   twai_node_record_t node_statistics;
+  twai_error_state_t node_error_state;
+  uint32_t node_bus_err_num;
 
   if (twai_node_get_info(twai_node_handle, &node_status, &node_statistics) == ESP_OK) {
     _numSendErr = node_status.tx_error_count;
     _numRecvErr = node_status.rx_error_count;
+
+    node_error_state = node_status.state;
+    node_bus_err_num = node_statistics.bus_err_num;
+
+    if (node_error_state != TWAI_ERROR_ACTIVE) {
+      Serial.printf("error: bus state = %u, num errors = %lu\n", node_error_state, node_bus_err_num);
+    }
+
   }
 
   return;
