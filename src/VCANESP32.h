@@ -79,7 +79,7 @@ public:
   /// ensure that the ESP32 GPIO number is specified and NOT the physical device pin number
   void setPins(byte tx_pin, byte rx_pin);
   
-  /// there are two buffer queues, one for transmit and one for receive. The larger the buffer, the
+  /// there are two message buffer queues, one for transmit and one for receive. The larger the buffer, the
   /// more memory it uses. This function allows the user to specify the size of the buffers.
   /// the default size is 32 for transmit and 32 for receive.
   void setNumBuffers(unsigned int num_rx_buffers, unsigned int num_tx_buffers);
@@ -87,7 +87,7 @@ public:
 /// \cond
 
   void printStatus(void);
-  
+
   virtual unsigned int receiveCounter() override { return _numMsgsRcvd; }
   virtual unsigned int transmitCounter() override { return _numMsgsSent; }
   virtual unsigned int receiveErrorCounter() override { return _numRecvErr; }
@@ -98,7 +98,8 @@ public:
   virtual unsigned int transmitBufferPeak() override { return _hwmTx; };
   virtual unsigned int errorStatus() override { return 0; }
 
-  QueueHandle_t rx_queue_handle;    // received message queue, using FreeRTOS queue API
+  QueueHandle_t rx_queue_handle;             // received message queue, using FreeRTOS queue API
+  twai_node_handle_t twai_node_handle;       // TWAI driver instance handle
 
 /// \endcond
 private:
@@ -107,7 +108,6 @@ private:
   unsigned int _numMsgsSent, _numMsgsRcvd, _numSendErr, _numRecvErr, _hwmRx, _hwmTx;
   unsigned int _num_rx_buffers, _num_tx_buffers;
   byte _gpio_tx, _gpio_rx;
-  twai_node_handle_t twai_node_handle;
 };
 
 }

@@ -3,6 +3,12 @@
 // Licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
 // The full licence can be found at: http://creativecommons.org/licenses/by-nc-sa/4.0/
 
+/// notes:
+/// the twai_frame_t structure does not contain space for the data payload
+/// a buffer must be allocated when creating a message
+/// and freed when a message goes out of scope
+/// this reduces memory use and improves performance by minimising data copying
+
 // 3rd party libraries
 
 #include <Streaming.h>
@@ -16,13 +22,13 @@ namespace VLCB
 {
 
 /// these free functions are used as callbacks from the TWAI driver to the application
+/// the VCANESP32 object instance pointer (this) is passed as the user data context arg 'user_ctx'
 
 //
 /// message receive callback
-/// called by the TWAI driver in interrupt context whenever a new CAN message is received from the bus
-/// the VCANESP32 object instance pointer (this) is passed as the user data context 
-/// pinned in IRAM for better performance
-/// place the message in the receive queue
+/// called by the TWAI driver in interrupt context whenever a new CAN message is
+/// received from the bus pinned in IRAM for better performance place the
+/// message in the receive queue
 //
 
 static bool IRAM_ATTR twai_rx_callback(twai_node_handle_t handle, const twai_rx_done_event_data_t *edata, void *user_ctx)
@@ -42,6 +48,8 @@ static bool IRAM_ATTR twai_rx_callback(twai_node_handle_t handle, const twai_rx_
     if (xQueueSendFromISR(vcanesp32_instance_ptr->rx_queue_handle, &rx_frame, NULL) != pdPASS) {
       Serial.printf("error: twai_rx_callback: unable to queue message");
     }
+  } else {
+    Serial.printf("error: twai_rx_callback: error receiving message from TWAI driver");
   }
 
   return false;
@@ -56,6 +64,10 @@ static bool IRAM_ATTR twai_rx_callback(twai_node_handle_t handle, const twai_rx_
 
 static bool IRAM_ATTR twai_tx_callback(twai_node_handle_t handle, const twai_tx_done_event_data_t *edata, void *user_ctx)
 {
+  if (!edata->is_tx_success) {
+    Serial.printf("error: twai_tx_callback: error sending message");
+  }
+
   free(edata->done_tx_frame->buffer);
   return false;
 }
@@ -231,7 +243,7 @@ CANFrame VCANESP32::getNextCanFrame(void)
     frame.rtr = rx_msg.header.rtr;
     memcpy(frame.data, rx_msg.buffer, rx_msg.buffer_len);
 
-    // free the frame data buffer
+    // free the frame data buffer - this was allocated in the rx callback function
     free(rx_msg.buffer);
 
     ++_numMsgsRcvd;
