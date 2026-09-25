@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['setnumbuffers_0',['setNumBuffers',['../class_v_l_c_b_1_1_v_c_a_n2040.html#a2171d7bdab2e33c1eef95df0c123eff7',1,'VLCB::VCAN2040']]],
-  ['setpins_1',['setPins',['../class_v_l_c_b_1_1_v_c_a_n2040.html#a8f7c0ef100407072bb4029dfe075ff3c',1,'VLCB::VCAN2040']]],
-  ['setpio_2',['setPIO',['../class_v_l_c_b_1_1_v_c_a_n2040.html#add701a821e4638dc43aef6ff20a2760d',1,'VLCB::VCAN2040']]]
+  ['setdefaults_0',['setDefaults',['../class_v_l_c_b_1_1_v_c_a_n_e_s_p32.html#a88d72ecf7742805b98fb9caa2e4b55e6',1,'VLCB::VCANESP32']]],
+  ['setnumbuffers_1',['setNumBuffers',['../class_v_l_c_b_1_1_v_c_a_n_e_s_p32.html#ad239f9a4a9a9d8fce4d3501fc494bf31',1,'VLCB::VCANESP32']]],
+  ['setpins_2',['setPins',['../class_v_l_c_b_1_1_v_c_a_n_e_s_p32.html#a48c0cabb6d96d3a4d8edd3fb30c42aac',1,'VLCB::VCANESP32']]]
 ];

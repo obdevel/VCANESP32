@@ -1,0 +1,6 @@
+var class_v_l_c_b_1_1_v_c_a_n_e_s_p32 =
+[
+    [ "setPins", "class_v_l_c_b_1_1_v_c_a_n_e_s_p32.html#a48c0cabb6d96d3a4d8edd3fb30c42aac", null ],
+    [ "setNumBuffers", "class_v_l_c_b_1_1_v_c_a_n_e_s_p32.html#ad239f9a4a9a9d8fce4d3501fc494bf31", null ],
+    [ "setDefaults", "class_v_l_c_b_1_1_v_c_a_n_e_s_p32.html#a88d72ecf7742805b98fb9caa2e4b55e6", null ]
+];
