@@ -1,0 +1,74 @@
+name: Arduino Firmware Build
+
+env:
+  # Fix for NodeJS 24 until action arduino/setup-arduino-cli is fixed.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  
+on:
+  pull_request:
+    paths:
+      - Examples/**
+      - src/**
+      - library.properties
+      - .github/workflows/ci-arduino-build.yml
+  push:
+    paths:
+      - Examples/**
+      - src/**
+      - library.properties
+      - .github/workflows/ci-arduino-build.yml
+  workflow_dispatch:
+
+jobs:
+  compile-examples:
+    strategy:
+      fail-fast: false # The default is to abort if one of the jobs fails, so do not abort
+
+      matrix:
+        include:
+          # List a few significant ESP32 boards here that we need to compile for.
+          - label: Espressif ESP32
+            board: esp32:esp32:esp32c6
+            platform: esp32:esp32
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install Arduino core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install ${{ matrix.platform }} ${{ matrix.install-args }}
+
+      - name: Install library dependencies
+        run: |
+          arduino-cli lib install VLCB
+          arduino-cli lib install Streaming
+
+      - name: Compile all examples for ${{ matrix.label }}
+        run: |
+          results=""
+          #for dir in ./Examples/*; do
+          # TODO: Expand the list of examples as they are completed.
+          # So far only one example sketch is ready.
+          for dir in ./Examples/VLCB_4in4out_ESP32_s; do
+            if [ -d "$dir" ] && ls "$dir"/*.ino >/dev/null 2>&1; then
+              exname=$(basename "$dir")
+              echo "Compiling $dir"
+              if arduino-cli compile --fqbn ${{ matrix.board }} --library . "$dir"; then
+                results="$results  PASS  $exname"$'\n'
+              else
+                results="$results  FAIL  $exname"$'\n'
+              fi
+            fi
+          done
+          echo "=== Summary ==="
+          echo "$results"
+          if echo "$results" | grep -q "^  FAIL"; then
+            exit 1
+          fi
