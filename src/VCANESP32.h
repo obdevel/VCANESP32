@@ -104,6 +104,8 @@ class VCANESP32 : public CanTransport {
   virtual unsigned int transmitErrorCounter() override { return _numSendErr; }
   virtual unsigned int receiveBufferUsage() override { return 0; };
   virtual unsigned int transmitBufferUsage() override { return 0; };
+  virtual unsigned int receiveBufferSize() override { return _num_rx_buffers; };
+  virtual unsigned int transmitBufferSize() override { return _num_tx_buffers; };
   virtual unsigned int receiveBufferPeak() override { return _hwmRx; };
   virtual unsigned int transmitBufferPeak() override { return _hwmTx; };
   virtual unsigned int errorStatus() override { return 0; }
